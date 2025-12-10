@@ -1,11 +1,14 @@
 package com.example.todo_app.service;
 
 import com.example.todo_app.model.TodoItem;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class TodoService {
@@ -32,7 +35,9 @@ public class TodoService {
                 return item;
             }
         }
-        return null;
+        throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "entity not found"
+        );
     }
 
     public TodoItem create(TodoItem todoItem) {

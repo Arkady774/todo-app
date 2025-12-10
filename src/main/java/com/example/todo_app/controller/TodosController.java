@@ -1,8 +1,10 @@
 package com.example.todo_app.controller;
 
 import com.example.todo_app.model.TodoItem;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,6 +16,18 @@ public class TodosController {
     @GetMapping("/tasks")
     public List<TodoItem> getTodoItems() {
         return todoItems;
+    }
+
+    @GetMapping("/tasks/filtered")
+    public List<TodoItem> getTodoItemsFiltered(
+            @RequestParam @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate date) {
+        List<TodoItem> filteredTodoItems = new ArrayList<>();
+        for(TodoItem item : todoItems) {
+            if(item.getDate().equals(date)) {
+                filteredTodoItems.add(item);
+            }
+        }
+        return filteredTodoItems;
     }
 
     @GetMapping("/tasks/{id}")

@@ -1,10 +1,17 @@
 package com.example.todo_app.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import java.time.LocalDate;
+
 public class TodoItem {
     private Long id;
     private String title;
     private String description;
     private boolean completed;
+
+    @JsonFormat(pattern = "dd-MM-yyyy")
+    private LocalDate date;
 
     public TodoItem() {}
 
@@ -27,4 +34,12 @@ public class TodoItem {
 
     public boolean isCompleted() { return completed; }
     public void setCompleted(boolean completed) { this.completed = completed; }
+
+    public LocalDate getDate() {
+        return date;
+    }
+
+    public void setDate(LocalDate date) {
+        this.date = date;
+    }
 }

@@ -15,11 +15,12 @@ public class TodoItem {
 
     public TodoItem() {}
 
-    public TodoItem(Long id, String title, String description) {
+    public TodoItem(Long id, String title, String description, LocalDate date, boolean completed) {
         this.id = id;
         this.title = title;
         this.description = description;
-        this.completed = false;
+        this.date = date;
+        this.completed = completed;
     }
 
     // Геттеры и сеттеры
@@ -32,14 +33,9 @@ public class TodoItem {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
+    public LocalDate getDate() { return date; }
+    public void setDate(LocalDate date) { this.date = date; }
+
     public boolean isCompleted() { return completed; }
     public void setCompleted(boolean completed) { this.completed = completed; }
-
-    public LocalDate getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDate date) {
-        this.date = date;
-    }
 }

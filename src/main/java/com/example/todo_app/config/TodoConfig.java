@@ -1,6 +1,7 @@
 package com.example.todo_app.config;
 
 import com.zaxxer.hikari.HikariDataSource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -9,13 +10,18 @@ import javax.sql.DataSource;
 @Configuration
 public class TodoConfig {
     @Bean
-    public DataSource dataSource() {
+    public DataSource dataSource(
+            @Value("${spring.datasource.url}") String jdbcUrl,
+            @Value("${spring.datasource.username}") String username,
+            @Value("${spring.datasource.password}") String password,
+            @Value("${spring.datasource.driver-class-name}") String driver,
+            @Value("${spring.datasource.maximum-pool-size}") Integer maxPoolSize) {
         HikariDataSource dataSource = new HikariDataSource();
-        dataSource.setJdbcUrl("jdbc:postgresql://localhost:5432/todos");
-        dataSource.setUsername("postgres");
-        dataSource.setPassword("postgres");
-        dataSource.setDriverClassName("org.postgresql.Driver");
-        dataSource.setMaximumPoolSize(10);
+        dataSource.setJdbcUrl(jdbcUrl);
+        dataSource.setUsername(username);
+        dataSource.setPassword(password);
+        dataSource.setDriverClassName(driver);
+        dataSource.setMaximumPoolSize(maxPoolSize);
         return dataSource;
     }
 

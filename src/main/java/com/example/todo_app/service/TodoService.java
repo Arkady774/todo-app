@@ -12,6 +12,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDate;
 import java.util.List;
 
+//TODO перенести всю логику работы с SQl в TodoRepository. Сервис же в свою очередь будет использовать методы репозитория.
 @Service
 public class TodoService {
 
@@ -73,33 +74,5 @@ public class TodoService {
         // Возвращаем обновленный элемент
         item.setCompleted(!item.isCompleted());
         return item;
-    }
-
-    // Дополнительные методы для работы с БД:
-
-    public void update(TodoItem todoItem) {
-        String sql = "UPDATE todo_items SET title = ?, description = ?, date = ?, completed = ? WHERE id = ?";
-        jdbcTemplate.update(sql,
-                todoItem.getTitle(),
-                todoItem.getDescription(),
-                java.sql.Date.valueOf(todoItem.getDate()),
-                todoItem.isCompleted(),
-                todoItem.getId()
-        );
-    }
-
-    public void delete(Long id) {
-        String sql = "DELETE FROM todo_items WHERE id = ?";
-        jdbcTemplate.update(sql, id);
-    }
-
-    public List<TodoItem> getCompleted() {
-        String sql = "SELECT * FROM todo_items WHERE completed = true ORDER BY date DESC";
-        return jdbcTemplate.query(sql, todoItemRowMapper);
-    }
-
-    public List<TodoItem> getPending() {
-        String sql = "SELECT * FROM todo_items WHERE completed = false ORDER BY date DESC";
-        return jdbcTemplate.query(sql, todoItemRowMapper);
     }
 }

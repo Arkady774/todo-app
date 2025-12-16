@@ -1,7 +1,7 @@
 package com.example.todo_app.service;
 
 import com.example.todo_app.model.TodoItem;
-import com.example.todo_app.repository.TodoRepository;
+import com.example.todo_app.repository.TodoRepositoryJPA;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,10 +15,10 @@ import java.util.List;
 @Service
 public class TodoService {
 
-    private final TodoRepository todoRepository;
+    private final TodoRepositoryJPA todoRepository;
 
     @Autowired
-    public TodoService(TodoRepository todoRepository) {
+    public TodoService(TodoRepositoryJPA todoRepository) {
         this.todoRepository = todoRepository;
         log.info("TodoService инициализирован с репозиторием");
     }
@@ -71,12 +71,12 @@ public class TodoService {
 
             boolean newCompletedStatus = !item.isCompleted();
             log.debug("Переключение статуса с {} на {}", item.isCompleted(), newCompletedStatus);
-
-            todoRepository.updateCompletedStatus(id, newCompletedStatus);
             item.setCompleted(newCompletedStatus);
 
+            TodoItem savedItem = todoRepository.save(item);
+
             log.info("Успешно переключена задача с id: {} на статус: {}", id, newCompletedStatus);
-            return item;
+            return savedItem;
         } catch (Exception ex) {
             log.error("Ошибка при переключении задачи с id: {}, ошибка: {}", id, ex.getMessage());
             throw ex;

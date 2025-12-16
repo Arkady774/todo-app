@@ -1,8 +1,11 @@
 package com.example.todo_app.controller;
 
-import com.example.todo_app.model.TodoItem;
+import com.example.todo_app.dto.TodoItemRequest;
+import com.example.todo_app.dto.TodoItemResponse;
 import com.example.todo_app.service.TodoService;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -18,28 +21,33 @@ public class TodosController {
     }
 
     @GetMapping("/tasks")
-    public List<TodoItem> getTodoItems() {
-        return todoService.getAll();
+    public ResponseEntity<List<TodoItemResponse>> getTodoItems() {
+        List<TodoItemResponse> responses = todoService.getAll();
+        return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/tasks/filtered")
-    public List<TodoItem> getTodoItemsFiltered(
+    public ResponseEntity<List<TodoItemResponse>> getTodoItemsFiltered(
             @RequestParam @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate date) {
-        return todoService.getByDate(date);
+        List<TodoItemResponse> responses = todoService.getByDate(date);
+        return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/tasks/{id}")
-    public TodoItem getItemById(@PathVariable Long id) {
-        return todoService.getById(id);
+    public ResponseEntity<TodoItemResponse> getItemById(@PathVariable Long id) {
+        TodoItemResponse response = todoService.getById(id);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/tasks")
-    public TodoItem createTodoItem(@RequestBody TodoItem todoItem) {
-        return todoService.create(todoItem);
+    public ResponseEntity<TodoItemResponse> createTodoItem(@RequestBody TodoItemRequest request) {
+        TodoItemResponse response = todoService.create(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/tasks/{id}/toggle")
-    public TodoItem toggle(@PathVariable Long id) {
-        return todoService.toggle(id);
+    public ResponseEntity<TodoItemResponse> toggle(@PathVariable Long id) {
+        TodoItemResponse response = todoService.toggle(id);
+        return ResponseEntity.ok(response);
     }
 }

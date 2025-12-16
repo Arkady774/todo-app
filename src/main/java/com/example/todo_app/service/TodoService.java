@@ -1,5 +1,7 @@
 package com.example.todo_app.service;
 
+import com.example.todo_app.dto.TodoItemRequest;
+import com.example.todo_app.dto.TodoItemResponse;
 import com.example.todo_app.model.TodoItem;
 import com.example.todo_app.repository.TodoRepositoryJPA;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +12,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -23,21 +26,25 @@ public class TodoService {
         log.info("TodoService инициализирован с репозиторием");
     }
 
-    public List<TodoItem> getAll() {
+    public List<TodoItemResponse> getAll() {
         log.info("Получение всех задач");
         List<TodoItem> items = todoRepository.findAll();
         log.info("Получено {} задач", items.size());
-        return items;
+        return items.stream()
+                .map(TodoItemResponse::fromEntity)
+                .collect(Collectors.toList());
     }
 
-    public List<TodoItem> getByDate(LocalDate date) {
+    public List<TodoItemResponse> getByDate(LocalDate date) {
         log.info("Получение задач на дату: {}", date);
         List<TodoItem> items = todoRepository.findByDate(date);
         log.info("Получено {} задач на дату: {}", items.size(), date);
-        return items;
+        return items.stream()
+                .map(TodoItemResponse::fromEntity)
+                .collect(Collectors.toList());
     }
 
-    public TodoItem getById(Long id) {
+    public TodoItemResponse getById(Long id) {
         log.info("Получение задачи по id: {}", id);
         try {
             TodoItem item = todoRepository.findById(id)
@@ -49,25 +56,32 @@ public class TodoService {
                         );
                     });
             log.info("Задача найдена с id: {}", id);
-            return item;
+            return TodoItemResponse.fromEntity(item);
         } catch (ResponseStatusException ex) {
             log.error("Не удалось получить задачу с id: {}, ошибка: {}", id, ex.getMessage());
             throw ex;
         }
     }
 
-    public TodoItem create(TodoItem todoItem) {
-        log.info("Создание новой задачи с заголовком: {}", todoItem.getTitle());
-        todoItem.setCompleted(false);
+    public TodoItemResponse create(TodoItemRequest request) {
+        log.info("Создание новой задачи с заголовком: {}", request.getTitle());
+        TodoItem todoItem = request.toEntity();
         TodoItem savedItem = todoRepository.save(todoItem);
         log.info("Задача успешно создана с id: {}", savedItem.getId());
-        return savedItem;
+        return TodoItemResponse.fromEntity(savedItem);
     }
 
-    public TodoItem toggle(Long id) {
+    public TodoItemResponse toggle(Long id) {
         log.info("Переключение статуса выполнения для задачи с id: {}", id);
         try {
-            TodoItem item = getById(id);
+            TodoItem item = todoRepository.findById(id)
+                    .orElseThrow(() -> {
+                        log.error("Задача не найдена с id: {}", id);
+                        return new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Todo item not found with id: " + id
+                        );
+                    });
 
             boolean newCompletedStatus = !item.isCompleted();
             log.debug("Переключение статуса с {} на {}", item.isCompleted(), newCompletedStatus);
@@ -76,10 +90,16 @@ public class TodoService {
             TodoItem savedItem = todoRepository.save(item);
 
             log.info("Успешно переключена задача с id: {} на статус: {}", id, newCompletedStatus);
-            return savedItem;
-        } catch (Exception ex) {
+            return TodoItemResponse.fromEntity(savedItem);
+        } catch (ResponseStatusException ex) {
             log.error("Ошибка при переключении задачи с id: {}, ошибка: {}", id, ex.getMessage());
             throw ex;
+        } catch (Exception ex) {
+            log.error("Неожиданная ошибка при переключении задачи с id: {}, ошибка: {}", id, ex.getMessage());
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error toggling todo item with id: " + id
+            );
         }
     }
 }

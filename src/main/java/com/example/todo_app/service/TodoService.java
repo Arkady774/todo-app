@@ -2,6 +2,7 @@ package com.example.todo_app.service;
 
 import com.example.todo_app.dto.TodoItemRequest;
 import com.example.todo_app.dto.TodoItemResponse;
+import com.example.todo_app.mapper.TodoMapper;
 import com.example.todo_app.model.TodoItem;
 import com.example.todo_app.repository.TodoRepositoryJPA;
 import lombok.extern.slf4j.Slf4j;
@@ -19,10 +20,12 @@ import java.util.stream.Collectors;
 public class TodoService {
 
     private final TodoRepositoryJPA todoRepository;
+    private final TodoMapper todoMapper;
 
     @Autowired
-    public TodoService(TodoRepositoryJPA todoRepository) {
+    public TodoService(TodoRepositoryJPA todoRepository, TodoMapper todoMapper) {
         this.todoRepository = todoRepository;
+        this.todoMapper = todoMapper;
         log.info("TodoService инициализирован с репозиторием");
     }
 
@@ -31,7 +34,7 @@ public class TodoService {
         List<TodoItem> items = todoRepository.findAll();
         log.info("Получено {} задач", items.size());
         return items.stream()
-                .map(TodoItemResponse::fromEntity)
+                .map(todoMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
@@ -40,7 +43,7 @@ public class TodoService {
         List<TodoItem> items = todoRepository.findByDate(date);
         log.info("Получено {} задач на дату: {}", items.size(), date);
         return items.stream()
-                .map(TodoItemResponse::fromEntity)
+                .map(todoMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
@@ -56,7 +59,7 @@ public class TodoService {
                         );
                     });
             log.info("Задача найдена с id: {}", id);
-            return TodoItemResponse.fromEntity(item);
+            return todoMapper.toResponse(item);
         } catch (ResponseStatusException ex) {
             log.error("Не удалось получить задачу с id: {}, ошибка: {}", id, ex.getMessage());
             throw ex;
@@ -65,10 +68,10 @@ public class TodoService {
 
     public TodoItemResponse create(TodoItemRequest request) {
         log.info("Создание новой задачи с заголовком: {}", request.getTitle());
-        TodoItem todoItem = request.toEntity();
+        TodoItem todoItem = todoMapper.toEntity(request);
         TodoItem savedItem = todoRepository.save(todoItem);
         log.info("Задача успешно создана с id: {}", savedItem.getId());
-        return TodoItemResponse.fromEntity(savedItem);
+        return todoMapper.toResponse(savedItem);
     }
 
     public TodoItemResponse toggle(Long id) {
@@ -90,7 +93,7 @@ public class TodoService {
             TodoItem savedItem = todoRepository.save(item);
 
             log.info("Успешно переключена задача с id: {} на статус: {}", id, newCompletedStatus);
-            return TodoItemResponse.fromEntity(savedItem);
+            return todoMapper.toResponse(savedItem);
         } catch (ResponseStatusException ex) {
             log.error("Ошибка при переключении задачи с id: {}, ошибка: {}", id, ex.getMessage());
             throw ex;

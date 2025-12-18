@@ -49,7 +49,7 @@ public class TodoService {
 
     public TodoItemResponse getById(Long id) {
         log.info("Получение задачи по id: {}", id);
-        try {
+
             TodoItem item = todoRepository.findById(id)
                     .orElseThrow(() -> {
                         log.error("Задача не найдена с id: {}", id);
@@ -60,10 +60,7 @@ public class TodoService {
                     });
             log.info("Задача найдена с id: {}", id);
             return todoMapper.toResponse(item);
-        } catch (ResponseStatusException ex) {
-            log.error("Не удалось получить задачу с id: {}, ошибка: {}", id, ex.getMessage());
-            throw ex;
-        }
+
     }
 
     public TodoItemResponse create(TodoItemRequest request) {
@@ -76,33 +73,23 @@ public class TodoService {
 
     public TodoItemResponse toggle(Long id) {
         log.info("Переключение статуса выполнения для задачи с id: {}", id);
-        try {
-            TodoItem item = todoRepository.findById(id)
-                    .orElseThrow(() -> {
-                        log.error("Задача не найдена с id: {}", id);
-                        return new ResponseStatusException(
-                                HttpStatus.NOT_FOUND,
-                                "Todo item not found with id: " + id
-                        );
-                    });
 
-            boolean newCompletedStatus = !item.isCompleted();
-            log.debug("Переключение статуса с {} на {}", item.isCompleted(), newCompletedStatus);
-            item.setCompleted(newCompletedStatus);
+        TodoItem item = todoRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.error("Задача не найдена с id: {}", id);
+                    return new ResponseStatusException(
+                            HttpStatus.NOT_FOUND,
+                            "Todo item not found with id: " + id
+                    );
+                });
 
-            TodoItem savedItem = todoRepository.save(item);
+        boolean newCompletedStatus = !item.isCompleted();
+        log.debug("Переключение статуса с {} на {}", item.isCompleted(), newCompletedStatus);
+        item.setCompleted(newCompletedStatus);
 
-            log.info("Успешно переключена задача с id: {} на статус: {}", id, newCompletedStatus);
-            return todoMapper.toResponse(savedItem);
-        } catch (ResponseStatusException ex) {
-            log.error("Ошибка при переключении задачи с id: {}, ошибка: {}", id, ex.getMessage());
-            throw ex;
-        } catch (Exception ex) {
-            log.error("Неожиданная ошибка при переключении задачи с id: {}, ошибка: {}", id, ex.getMessage());
-            throw new ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Error toggling todo item with id: " + id
-            );
-        }
+        TodoItem savedItem = todoRepository.save(item);
+
+        log.info("Успешно переключена задача с id: {} на статус: {}", id, newCompletedStatus);
+        return todoMapper.toResponse(savedItem);
     }
 }
